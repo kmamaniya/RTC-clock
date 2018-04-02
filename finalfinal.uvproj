@@ -384,11 +384,6 @@
               <FilePath>.\DHT11.h</FilePath>
             </File>
             <File>
-              <FileName>DHT11new.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\DHT11new.h</FilePath>
-            </File>
-            <File>
               <FileName>DS1307.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\DS1307.h</FilePath>

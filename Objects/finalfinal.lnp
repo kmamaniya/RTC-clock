@@ -1,0 +1,6 @@
+".\Objects\STARTUP.obj",
+".\Objects\I2C.obj",
+".\Objects\test.obj",
+".\Objects\DS1307.obj" 
+TO ".\Objects\finalfinal" 
+PRINT(".\Listings\finalfinal.m51") RAMSIZE(256) 

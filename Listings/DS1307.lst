@@ -1,0 +1,281 @@
+C51 COMPILER V9.56.0.0   DS1307                                                            04/02/2018 14:38:22 PAGE 1   
+
+
+C51 COMPILER V9.56.0.0, COMPILATION OF MODULE DS1307
+OBJECT MODULE PLACED IN .\Objects\DS1307.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE DS1307.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\DS
+                    -1307.lst) TABS(2) OBJECT(.\Objects\DS1307.obj)
+
+line level    source
+
+   1          #include "Includes.h"
+   2          
+   3          // Global RTC Array and temp variable
+   4          unsigned char pRTCArray[4];
+   5          unsigned char Temp;
+   6          
+   7             
+   8          // Function Purpose: delay generate some delay according to d value  
+   9          void delay(unsigned int d)
+  10          {
+  11   1        unsigned int i;
+  12   1        for(i=0;i<d;i++);
+  13   1      }
+  14          
+  15          // Function Purpose: Write_Byte_To_DS1307_RTC writes a single byte on given address
+  16          // Address can have any value fromm 0 to 0xFF, and DataByte can have a value of 0 to 0xFF.
+  17          void Write_Byte_To_DS1307_RTC(unsigned char Address, unsigned char DataByte)
+  18          {
+  19   1        I2C_Start();                    // Start i2c communication
+  20   1      
+  21   1        // Send i2c address of DS1307 with write command
+  22   1        while(I2C_Write_Byte(Device_Address_DS1307_EEPROM + 0) == 1)// Wait until device is free
+  23   1        { I2C_Start();  }   
+  24   1      
+  25   1        I2C_Write_Byte(Address);              // Write Address byte
+  26   1        I2C_Write_Byte(DataByte);             // Write data byte
+  27   1        I2C_Stop();                     // Stop i2c communication
+  28   1      }
+  29          
+  30          
+  31          
+  32          // Function Purpose: Read_Byte_From_DS1307_RTC reads a single byte from given address
+  33          // Address can have any value fromm 0 to 0xFF.
+  34          unsigned char Read_Byte_From_DS1307_RTC(unsigned char Address)
+  35          {
+  36   1        unsigned char Byte = 0;               // Variable to store Received byte
+  37   1      
+  38   1        I2C_Start();                    // Start i2c communication
+  39   1      
+  40   1        // Send i2c address of DS1307 with write command
+  41   1        while(I2C_Write_Byte(Device_Address_DS1307_EEPROM + 0) == 1)// Wait until device is free
+  42   1        { I2C_Start();  }   
+  43   1      
+  44   1        I2C_Write_Byte(Address);              // Write Address byte
+  45   1        I2C_ReStart();                    // Restart i2c
+  46   1      
+  47   1        // Send i2c address of DS1307 RTC with read command 
+  48   1        I2C_Write_Byte(Device_Address_DS1307_EEPROM + 1);   
+  49   1      
+  50   1        Byte = I2C_Read_Byte();               // Read byte from EEPROM
+  51   1      
+  52   1        // Make SCK low, so that slave can stop driving SDA pin
+  53   1        // Send a NACK to indiacate single byte read is complete
+  54   1        I2C_Send_NACK();
+C51 COMPILER V9.56.0.0   DS1307                                                            04/02/2018 14:38:22 PAGE 2   
+
+  55   1      
+  56   1        // Send start bit and then stop bit to stop transmission
+  57   1        Set_SDA_Low;        // Make SDA Low
+  58   1        __delay_us(HalfBitDelay); // Half bit delay
+  59   1        Set_SDA_High;       // Make SDA high
+  60   1        __delay_us(HalfBitDelay); // Half bit delay
+  61   1      
+  62   1        return Byte;        // Return the byte received from 24LC64 EEPROM
+  63   1      }
+  64          
+  65          
+  66          
+  67          // Function Purpose: Write_Bytes_To_DS1307_RTC writes mulitple bytes from given starting address.
+  68          // Address can have any value fromm 0 to 0xFF and pData is pointer to the array
+  69          // containing NoOfBytes bytes in it. NoOfBytes is the number of bytes to write.
+  70          void Write_Bytes_To_DS1307_RTC(unsigned char Address,unsigned char* pData,unsigned char NoOfBytes)
+  71          {
+  72   1        unsigned int i;
+  73   1      
+  74   1        I2C_Start();                    // Start i2c communication
+  75   1      
+  76   1        // Send i2c address of DS1307 with write command
+  77   1        while(I2C_Write_Byte(Device_Address_DS1307_EEPROM + 0) == 1)// Wait until device is free
+  78   1        { I2C_Start();  }   
+  79   1      
+  80   1        I2C_Write_Byte(Address);              // Write Address byte
+  81   1      
+  82   1        for(i=0;i<NoOfBytes;i++)              // Write NoOfBytes
+  83   1          I2C_Write_Byte(pData[i]);           // Write data byte
+  84   1      
+  85   1        I2C_Stop();                     // Stop i2c communication
+  86   1      }
+  87          
+  88          
+  89          
+  90          
+  91          // Function Purpose: Read_Bytes_From_DS1307_RTC reads a NoOfBytes bytes from given starting address.
+  92          // Address can have any value fromm 0 to 0xFF. NoOfBytes is the number of bytes to write.
+  93          // Read bytes are returned in pData array.
+  94          void Read_Bytes_From_DS1307_RTC(unsigned char Address, unsigned char* pData, unsigned int NoOfBytes)
+  95          {
+  96   1        unsigned int i;
+  97   1      
+  98   1        I2C_Start();                    // Start i2c communication
+  99   1      
+ 100   1        // Send i2c address of DS1307 with write command
+ 101   1        while(I2C_Write_Byte(Device_Address_DS1307_EEPROM + 0) == 1)// Wait until device is free
+ 102   1        { I2C_Start();  }   
+ 103   1      
+ 104   1        I2C_Write_Byte(Address);              // Write Address byte
+ 105   1        I2C_ReStart();                    // Restart i2c
+ 106   1      
+ 107   1        // Send i2c address of DS1307 RTC with read command 
+ 108   1        I2C_Write_Byte(Device_Address_DS1307_EEPROM + 1);     
+ 109   1      
+ 110   1        pData[0] = I2C_Read_Byte();             // Read First byte from EEPROM
+ 111   1      
+ 112   1        for(i=1;i<NoOfBytes;i++)              // Read NoOfBytes
+ 113   1        {   
+ 114   2          I2C_Send_ACK();         // Give Ack to slave to start receiving next byte
+ 115   2          pData[i] = I2C_Read_Byte();   // Read next byte from EEPROM
+ 116   2        }
+C51 COMPILER V9.56.0.0   DS1307                                                            04/02/2018 14:38:22 PAGE 3   
+
+ 117   1      
+ 118   1        // Make SCK low, so that slave can stop driving SDA pin
+ 119   1        // Send a NACK to indiacate read operation is complete
+ 120   1        I2C_Send_NACK();
+ 121   1      
+ 122   1        // Send start bit and then stop bit to stop transmission
+ 123   1        Set_SDA_Low;        // Make SDA Low
+ 124   1        __delay_us(HalfBitDelay); // Half bit delay
+ 125   1        Set_SDA_High;       // Make SDA high
+ 126   1        __delay_us(HalfBitDelay); // Half bit delay
+ 127   1      }
+ 128          
+ 129          
+ 130          
+ 131          
+ 132          // Function Purpose: Set_DS1307_RTC_Time sets given time in RTC registers.
+ 133          // Mode can have a value AM_Time or PM_Time or TwentyFourHoursMode only.
+ 134          // Hours can have value from 0 to 23 only.
+ 135          // Mins can have value from 0 to 59 only.
+ 136          // Secs can have value from 0 to 59 only.
+ 137          void Set_DS1307_RTC_Time(unsigned char Mode, unsigned char Hours, unsigned char Mins, unsigned char Secs)
+ 138          {
+ 139   1        // Convert Hours, Mins, Secs into BCD
+ 140   1        pRTCArray[0] = (((unsigned char)(Secs/10))<<4)|((unsigned char)(Secs%10));
+ 141   1        pRTCArray[1] = (((unsigned char)(Mins/10))<<4)|((unsigned char)(Mins%10));
+ 142   1        pRTCArray[2] = (((unsigned char)(Hours/10))<<4)|((unsigned char)(Hours%10));
+ 143   1      
+ 144   1        switch(Mode)  // Set mode bits
+ 145   1        {
+ 146   2        case AM_Time:   pRTCArray[2] |= 0x40; break;
+ 147   2        case PM_Time:   pRTCArray[2] |= 0x60; break;
+ 148   2        
+ 149   2        default:  break;  // do nothing for 24HoursMode
+ 150   2        }
+ 151   1      
+ 152   1        // WritepRTCArray to DS1307
+ 153   1        Write_Bytes_To_DS1307_RTC(0x00, pRTCArray, 3);
+ 154   1      }
+ 155          
+ 156          
+ 157          
+ 158          
+ 159          
+ 160          // Function Purpose: Get_DS1307_RTC_Time returns current time from RTC registers.
+ 161          // Pointer to pRTCArray is returned, in this array
+ 162          // pRTCArray[3] can have a value AM_Time or PM_Time or TwentyFourHoursMode only.
+ 163          // pRTCArray[2] (Hours byte) can have value from 0 to 23 only.
+ 164          // pRTCArray[1] (Mins byte) can have value from 0 to 59 only.
+ 165          // pRTCArray[0] (Secs byte) can have value from 0 to 59 only.
+ 166          unsigned char* Get_DS1307_RTC_Time(void)
+ 167          {
+ 168   1        // Read Hours, Mins, Secs register from RTC
+ 169   1        Read_Bytes_From_DS1307_RTC(0x00, pRTCArray, 3);
+ 170   1      
+ 171   1        // Convert Secs back from BCD into number
+ 172   1        Temp = pRTCArray[0];
+ 173   1        pRTCArray[0] = ((Temp&0x7F)>>4)*10 + (Temp&0x0F);
+ 174   1      
+ 175   1        // Convert Mins back from BCD into number
+ 176   1        Temp = pRTCArray[1];
+ 177   1        pRTCArray[1] = (Temp>>4)*10 + (Temp&0x0F);
+ 178   1      
+C51 COMPILER V9.56.0.0   DS1307                                                            04/02/2018 14:38:22 PAGE 4   
+
+ 179   1        // Convert Hours back from BCD into number
+ 180   1        if(pRTCArray[2]&0x40) // if 12 hours mode
+ 181   1        {
+ 182   2          if(pRTCArray[2]&0x20) // if PM Time
+ 183   2            pRTCArray[3] = PM_Time;
+ 184   2          else    // if AM time
+ 185   2            pRTCArray[3] = AM_Time;
+ 186   2      
+ 187   2          Temp = pRTCArray[2];
+ 188   2          pRTCArray[2] = ((Temp&0x1F)>>4)*10 + (Temp&0x0F);
+ 189   2        }
+ 190   1        else    // if 24 hours mode
+ 191   1        {
+ 192   2          Temp = pRTCArray[2];
+ 193   2          pRTCArray[2] = (Temp>>4)*10 + (Temp&0x0F);
+ 194   2          pRTCArray[3] = TwentyFourHoursMode;
+ 195   2        }
+ 196   1      
+ 197   1        return pRTCArray;
+ 198   1      }
+ 199          
+ 200          
+ 201          
+ 202          
+ 203          
+ 204          // Function Purpose: Set_DS1307_RTC_Date sets given date in RTC registers.
+ 205          // Year can have a value from 0 to 99 only.
+ 206          // Month can have value from 1 to 12 only.
+ 207          // Date can have value from 1 to 31 only.
+ 208          // Day can have value from 1 to 7 only. Where 1 means Monday, 2 means Tuesday etc.
+ 209          void Set_DS1307_RTC_Date(unsigned char Date, unsigned char Month, unsigned char Year, unsigned char Day)
+ 210          {
+ 211   1        // Convert Year, Month, Date, Day into BCD
+ 212   1        pRTCArray[0] = (((unsigned char)(4/10))<<4)|((unsigned char)(4%10));
+ 213   1        pRTCArray[1] = (((unsigned char)(Date/10))<<4)|((unsigned char)(Date%10));
+ 214   1        pRTCArray[2] = (((unsigned char)(Month/10))<<4)|((unsigned char)(Month%10));
+ 215   1        pRTCArray[3] = (((unsigned char)(Year/10))<<4)|((unsigned char)(Year%10));
+ 216   1      
+ 217   1        // WritepRTCArray to DS1307
+ 218   1        Write_Bytes_To_DS1307_RTC(0x03, pRTCArray, 4);
+ 219   1      }
+*** WARNING C280 IN LINE 209 OF DS1307.c: 'Day': unreferenced local variable
+ 220          
+ 221          
+ 222          
+ 223          
+ 224          // Function Purpose: Get_DS1307_RTC_Date returns current date from RTC registers.
+ 225          // Pointer to pRTCArray is returned, in this array
+ 226          // pRTCArray[3] (Year byte) can have value from 0 to 99 only.
+ 227          // pRTCArray[2] (Month byte) can have value from 1 to 12 only.
+ 228          // pRTCArray[1] (Date byte) can have value from 1 to 31 only.
+ 229          // pRTCArray[0] (Day byte) can have value from 1 to 7 only.
+ 230          unsigned char* Get_DS1307_RTC_Date(void)
+ 231          {
+ 232   1        // Read Hours, Mins, Secs register from RTC
+ 233   1        Read_Bytes_From_DS1307_RTC(0x03, pRTCArray, 4);
+ 234   1      
+ 235   1        // Convert Date back from BCD into number
+ 236   1        Temp = pRTCArray[1];
+ 237   1        pRTCArray[1] = (Temp>>4)*10 + (Temp&0x0F);
+ 238   1      
+ 239   1        // Convert Month back from BCD into number
+C51 COMPILER V9.56.0.0   DS1307                                                            04/02/2018 14:38:22 PAGE 5   
+
+ 240   1        Temp = pRTCArray[2];
+ 241   1        pRTCArray[2] = (Temp>>4)*10 + (Temp&0x0F);
+ 242   1      
+ 243   1        // Convert Year back from BCD into number
+ 244   1        Temp = pRTCArray[3];
+ 245   1        pRTCArray[3] = (Temp>>4)*10 + (Temp&0x0F);
+ 246   1      
+ 247   1        return pRTCArray;
+ 248   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    678    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      5      27
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  1 WARNING(S),  0 ERROR(S)

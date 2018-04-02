@@ -368,7 +368,7 @@ void main()
 		flag=0;
 		CalculateDateTo7seg(Get_DS1307_RTC_Date());
 		CalculateTimeTo7seg(Get_DS1307_RTC_Time());
-		CalculateTempTo7seg(12);
+		CalculateTempTo7seg(getTemp());
 		display();
 		if(AlarmTime==currentTime)
 			buzzer=1;
