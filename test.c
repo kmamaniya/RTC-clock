@@ -1,3 +1,13 @@
+/*
+
+* Project Name: 	Table Clock
+* Author List: 		Karan Mamaniya
+* Filename: 		test.c
+* Functions: 		
+* Global Variables:	currentTime, AlarmTime, dispArr[], dispArr1[]
+*
+*/
+
 #include "Includes.h"
 #include "DHT11.h"
 #include <reg51.h>
@@ -23,53 +33,85 @@ unsigned char YY1=20,YY2,MM,DD,HH,MIN,SS,AP;
 int bitflag=0;
 int timeset=0;
 
+
+/*
+* Function Name:	CalculateTempTo7seg
+* Input:			unsigned char
+* Output:			void, values updates in the display array
+* Logic:			decode BCD from decimal data
+*/
 void CalculateTempTo7seg(unsigned char temp){
 	//Temperature
 	dispArr[8]=temp/10;
 	dispArr[9]=temp%10;
 }
 
+/*
+* Function Name:	CalculateDateTo7seg
+* Input:			char *
+* Output:			void, values updates in the display array
+* Logic:			decode BCD from decimal data
+*/
 void CalculateDateTo7seg(char * pDateArray){   // Displays date in DD:MM:YYYY format
-	//Date
 	
+	//Date
 	DD=pDateArray[1];
 	dispArr[0]=(char)(DD/10);
 	dispArr[1]=(char)(DD%10);
+	
 	//Months
 	MM=pDateArray[2];
 	dispArr[2]=(char)(MM/10);
 	dispArr[3]=(char)(MM%10);
+	
 	//Year
 	dispArr[4]=(char)YY1/10;
 	dispArr[5]=(char)YY1%10;
-	
 	YY2=pDateArray[3];
 	dispArr[6]=(char)(YY2/10);
 	dispArr[7]=(char)(YY2%10);
 	YY2=pDateArray[3];
 }
+
+/*
+* Function Name:	CalculateTimeTo7seg
+* Input:			char *
+* Output:			void, values updates in the display array
+* Logic:			decode BCD from decimal data, store the current time in a variable
+*/
 void CalculateTimeTo7seg(char *pTimeArray) {  // Displays date in DD:MM:YYYY format
+	
 	//Hours
 	HH=pTimeArray[2];
 	dispArr1[0]=(HH/10);
 	dispArr1[1]=(HH%10);
+	
 	//Minutes
 	MIN=pTimeArray[1];
 	dispArr1[2]=(MIN/10);
 	dispArr1[3]=(MIN%10);
+	
 	//Seconds
 	SS=pTimeArray[0];
 	dispArr1[4]=(SS/10);
 	dispArr1[5]=(SS%10);
+	
 	//AM PM
 	AP=(unsigned char)pTimeArray[3];
 	dispArr1[6]=AP;
-	currentTime = 60*pTimeArray[2]+pTimeArray[1] + AP*720;
+	currentTime = 60*pTimeArray[2]+pTimeArray[1] + AP*720;    // 60 MINS * NO. OF HOURS + MINUTES  + 12 HOURS for AM/PM
 }
 
+/*
+* Function Name:	display
+* Input:			void
+* Output:			void, Displays time, date, temperature on 7 Segment LED
+* Logic:			chose the led to be displayed by address on port 1 and latch it with data by port 2
+*/
 void display(){
 	char i;
 	
+	/// AM PM LED DISPLAY
 	if(dispArr1[6]==1){
 		PMLed=1;delay(100);
 		AMLed=0;
@@ -83,6 +125,8 @@ void display(){
 		AMLed=0;
 	}
 	
+	
+	//DATE DISPLAY
 	for(i=0;i<10;i++){
 		P2 = dispArr[i];
 		delay(10);
@@ -93,6 +137,9 @@ void display(){
 		latch=1;
 		delay(10);
 	}
+	
+	
+	//TIME DISPLAY
 	for(i=0;i<6;i++){
 		P2 = dispArr1[i];
 		delay(10);
@@ -105,6 +152,13 @@ void display(){
 	}
 }
 
+
+/*
+* Function Name:	setTime
+* Input:			void
+* Output:			void, sets user inputed time in the RTC
+* Logic:			dont update if no changed made, Store the variables temporarily in HH,MM,SS, AP display 0 for rest of the values 
+*/
 void setTime(){
 	int i;
 	timeset=0;
@@ -115,28 +169,31 @@ void setTime(){
 					if(modepin==0){
 						while(modepin!=1);
 						flag = 2;
-						if(timeset==1)
+						if(timeset==1)			// SET TIME ONLY IF CHANGED
 							Set_DS1307_RTC_Time(AP,HH,MIN,SS);
 						Set_DS1307_RTC_Date(DD,MM,YY2,4);
 						break;
 					}
 				}
-				for(i=0;i<10;i++)
+				for(i=0;i<10;i++)			//Make the date segment 00 00 0000
 					dispArr[i]=0;
 				
-				dispArr1[0]=HH/10;
+				dispArr1[0]=HH/10;			//Display the temporary variables
 				dispArr1[1]=HH%10;
 				dispArr1[2]=MIN/10;
 				dispArr1[3]=MIN%10;
 				dispArr1[4]=SS/10;
 				dispArr1[5]=SS%10;
 				dispArr1[6]=AP;
+				
 				display();
 				
+				
+				// IF DECREMENT IS PRESSED
 				if(changetens==0){
 					delay(debounceTime);
 					if(changetens==0){
-						timeset=1;
+						timeset=1;				//marks change in value, hence update time
 						while(changetens!=1);
 						switch(bitflag){
 							case 0: HH--;
@@ -157,10 +214,13 @@ void setTime(){
 						}
 					}
 				}
+				
+				
+				// IF INCREMENT IS PRESSED
 				if(changeunits==0){
 					delay(debounceTime);
 					if(changeunits==0){
-						timeset=1;
+						timeset=1;			//marks change in value, hence update time
 						while(changeunits!=1);
 						switch(bitflag){
 							case 0: HH++;
@@ -179,6 +239,9 @@ void setTime(){
 						}
 					}
 				}
+				
+				
+			//IF CHANGE BLOCK IS PRESSED
 			if(setpin==0){
 				delay(debounceTime);
 				if(setpin==0){
@@ -187,17 +250,26 @@ void setTime(){
 					bitflag%=4;
 				}
 			}
-			delay(100);
 		}
 }
 
+
+/*
+* Function Name:	setDate
+* Input:			void
+* Output:			void, sets user inputed date in the RTC
+* Output:			void, sets user inputed date in the RTC
+* Logic:			update even if no changed made, Store the variables temporarily in DD,MM,YYYY display 0 for rest of the values 
+*/
 void setDate(){
 		int i;
 		bitflag=0;
 		while(flag<2){
-		for(i=0;i<6;i++)
+		for(i=0;i<6;i++)			//display 00:00:00 for time
 			dispArr1[i]=0;
-		dispArr1[6]=2;	
+		
+		
+		dispArr1[6]=2;				//Display temporary variables
 		dispArr[8]=0;
 		dispArr[9]=0;
 		dispArr[0]=DD/10;
@@ -210,6 +282,7 @@ void setDate(){
 		dispArr[7]=YY2%10;
 		display();
 			
+		//IF INCREMENT IS PRESSED
 		if(changetens==0){
 			delay(debounceTime);
 			if(changetens==0){
@@ -234,6 +307,8 @@ void setDate(){
 				}
 			}
 		}
+		
+		//IF DECREMENT IS PRESSED
 		if(changeunits==0){
 			delay(debounceTime);
 			if(changeunits==0){
@@ -256,6 +331,8 @@ void setDate(){
 				}
 			}
 		}
+		
+		//IF CHANGE BLOCK IS PRESSED
 		if(setpin==0){
 			delay(debounceTime);
 			if(setpin==0){
@@ -264,6 +341,8 @@ void setDate(){
 				bitflag%=4;
 			}
 		}
+		
+		//IF CHANGE MODE IS PRESSED
 		if(modepin==0){
 			delay(debounceTime);
 			if(modepin==0){
@@ -271,18 +350,24 @@ void setDate(){
 				setTime();
 			}
 		}
-		delay(100);
 	}	
 }
 
-
+/*
+* Function Name:	setAlarm
+* Input:			void
+* Output:			void, stores user inputed alarm in the memore
+* Logic:			update even if no changed made, Store the variables temporarily in AlarmHH,AlarmMM,AlarmSS,AlarmAP, display 0 for rest pf the values 
+*/
 void setAlarm(){
 		int i=0;
 		bitflag=0;
 		while(flag<2){
-			for(i=0;i<10;i++)
+			
+			for(i=0;i<10;i++)			// DISPLAY 00 00 0000 for date
 				dispArr[i]=0;
-			dispArr1[0]=AlarmHH/10;
+				
+			dispArr1[0]=AlarmHH/10;		//Display stored alarm or default alarm on 7 seg display
 			dispArr1[1]=AlarmHH%10;
 			dispArr1[2]=AlarmMM/10;
 			dispArr1[3]=AlarmMM%10;
@@ -290,6 +375,8 @@ void setAlarm(){
 			dispArr1[5]=0;
 			dispArr1[6]=AlarmAP;
 			display();
+			
+			//IF DECREMENT IS PRESSED
 			if(changetens==0){
 				delay(debounceTime);
 				if(changetens==0){
@@ -310,6 +397,8 @@ void setAlarm(){
 					}
 				}
 			}
+			
+			//IF INCREMENT IS PRESSED
 			if(changeunits==0){
 				delay(debounceTime);
 				if(changeunits==0){
@@ -329,6 +418,8 @@ void setAlarm(){
 					}
 				}
 			}
+			
+			//IF CHANGE BLOCK IS PRESSED
 			if(setpin==0){
 				delay(debounceTime);
 				if(setpin==0){
@@ -337,6 +428,8 @@ void setAlarm(){
 					bitflag%=3;
 				}
 			}
+			
+			//IF CHANGE MODE IS PRESSED
 			if(modepin==0){
 			delay(debounceTime);
 				if(modepin==0){
@@ -344,16 +437,19 @@ void setAlarm(){
 					setDate();
 				}
 			}
-			delay(100);
 		}
-		AlarmTime=60*AlarmHH+AlarmMM + AlarmAP*720;
+		
+		AlarmTime=60*AlarmHH+AlarmMM + AlarmAP*720;		// update stored alarm time for comparison
 		flag=0;
 }
 
-	
-// Main function
-void main()
-{	
+/*
+* Function Name:	main
+* Input:			void
+* Output:			synchronization of the whole system
+* Logic:			initialization, default set time or date (if any), read from rtc, temperature sensor and display, check alarm, check id mode switch is pressed
+*/
+void main(){	
 	modepin=1;
 	changeunits=1;
 	changetens=1;
