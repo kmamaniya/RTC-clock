@@ -11,7 +11,7 @@
 #include "Includes.h"
 #include "DHT11.h"
 #include <reg51.h>
-#define debounceTime 1000
+#define debounceTime 5000
 
 long currentTime;
 long AlarmTime;
@@ -32,7 +32,7 @@ unsigned char AlarmAP=0;
 unsigned char YY1=20,YY2,MM,DD,HH,MIN,SS,AP;
 int bitflag=0;
 int timeset=0;
-
+int tempflag=0;
 
 /*
 * Function Name:	CalculateTempTo7seg
@@ -44,6 +44,7 @@ void CalculateTempTo7seg(unsigned char temp){
 	//Temperature
 	dispArr[8]=temp/10;
 	dispArr[9]=temp%10;
+	delay(100);
 }
 
 /*
@@ -58,11 +59,13 @@ void CalculateDateTo7seg(char * pDateArray){   // Displays date in DD:MM:YYYY fo
 	DD=pDateArray[1];
 	dispArr[0]=(char)(DD/10);
 	dispArr[1]=(char)(DD%10);
+	delay(100);
 	
 	//Months
 	MM=pDateArray[2];
 	dispArr[2]=(char)(MM/10);
 	dispArr[3]=(char)(MM%10);
+	delay(100);
 	
 	//Year
 	dispArr[4]=(char)YY1/10;
@@ -71,6 +74,7 @@ void CalculateDateTo7seg(char * pDateArray){   // Displays date in DD:MM:YYYY fo
 	dispArr[6]=(char)(YY2/10);
 	dispArr[7]=(char)(YY2%10);
 	YY2=pDateArray[3];
+	delay(100);
 }
 
 /*
@@ -85,21 +89,25 @@ void CalculateTimeTo7seg(char *pTimeArray) {  // Displays date in DD:MM:YYYY for
 	HH=pTimeArray[2];
 	dispArr1[0]=(HH/10);
 	dispArr1[1]=(HH%10);
+	delay(100);
 	
 	//Minutes
 	MIN=pTimeArray[1];
 	dispArr1[2]=(MIN/10);
 	dispArr1[3]=(MIN%10);
+	delay(100);
 	
 	//Seconds
 	SS=pTimeArray[0];
 	dispArr1[4]=(SS/10);
 	dispArr1[5]=(SS%10);
+	delay(100);
 	
 	//AM PM
 	AP=(unsigned char)pTimeArray[3];
 	dispArr1[6]=AP;
 	currentTime = 60*pTimeArray[2]+pTimeArray[1] + AP*720;    // 60 MINS * NO. OF HOURS + MINUTES  + 12 HOURS for AM/PM
+	delay(100);
 }
 
 /*
@@ -124,36 +132,39 @@ void display(){
 		PMLed=0;delay(100);
 		AMLed=0;
 	}
+	delay(100);
 	
 	
 	//DATE DISPLAY
 	for(i=0;i<10;i++){
-		P2 = dispArr[i];
+		P1 = dispArr[i];
 		delay(10);
-		P1 = (unsigned char)i;
+		P2 = (unsigned char)i;
 		delay(10);
 		latch=0;
 		delay(10);
 		latch=1;
 		delay(10);
 	}
+	delay(100);
 	
 	
 	//TIME DISPLAY
 	for(i=0;i<6;i++){
-		P2 = dispArr1[i];
+		P1 = dispArr1[i];
 		delay(10);
-		P1 = (unsigned char)(i+10);
+		P2 = (unsigned char)(i+10);
 		delay(10);
 		latch=0;
 		delay(10);
 		latch=1;
 		delay(10);
 	}
+	delay(100);
 }
 
 
-/*
+/*x
 * Function Name:	setTime
 * Input:			void
 * Output:			void, sets user inputed time in the RTC
@@ -251,6 +262,7 @@ void setTime(){
 				}
 			}
 		}
+	delay(100);
 }
 
 
@@ -351,6 +363,7 @@ void setDate(){
 			}
 		}
 	}	
+	delay(100);
 }
 
 /*
@@ -441,6 +454,7 @@ void setAlarm(){
 		
 		AlarmTime=60*AlarmHH+AlarmMM + AlarmAP*720;		// update stored alarm time for comparison
 		flag=0;
+	delay(100);
 }
 
 /*
@@ -457,14 +471,20 @@ void main(){
 	InitI2C();	// Initialize i2c pins	
 	flag=0;
 	//set initial time
-	//Set_DS1307_RTC_Time(PM_Time, 12, 59, 58);	// Set time 10:54:00 AM
-	//Set initial date
-	//Set_DS1307_RTC_Date(24, 8, 77, 0);	// Set Set 24-08-2017
+	//Set_DS1307_RTC_Time(PM_Time, 12, 59, 58);	// Set time 12:59:58 PM
+	//Set_DS1307_RTC_Date(24, 8, 18, 0);	// Set Set 24-08-2017
 	while(1){
 		flag=0;
 		CalculateDateTo7seg(Get_DS1307_RTC_Date());
 		CalculateTimeTo7seg(Get_DS1307_RTC_Time());
-		CalculateTempTo7seg(getTemp());
+		if(SS%5==4)
+			tempflag=1;
+		if(SS%5==0 && tempflag==1){
+			delay(10000);
+			CalculateTempTo7seg(getTemp());
+			tempflag=0;
+			delay(10000);
+		}
 		display();
 		if(AlarmTime==currentTime)
 			buzzer=1;
@@ -476,6 +496,6 @@ void main(){
 				setAlarm();
 			}
 		}
-		delay(5000);
+		delay(65000);
 	}
 }
