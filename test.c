@@ -1,7 +1,7 @@
 /*
 
 * Project Name: 	Table Clock
-* Author List: 		Karan Mamaniya
+* Author List: 		Karan Mamaniya (kmamaniya@gmail.com)
 * Filename: 		test.c
 * Functions: 		
 * Global Variables:	currentTime, AlarmTime, dispArr[], dispArr1[]
@@ -138,9 +138,9 @@ void display(){
 	
 	//DATE DISPLAY
 	for(i=0;i<10;i++){
-		P2 = dispArr[i];
+		P1 = dispArr[i];
 		delay(10);
-		P1 = (unsigned char)i;
+		P2 = (unsigned char)i;
 		delay(10);
 		latch=0;
 		delay(10);
@@ -152,9 +152,9 @@ void display(){
 	
 	//TIME DISPLAY
 	for(i=0;i<6;i++){
-		P2 = dispArr1[i];
+		P1 = dispArr1[i];
 		delay(10);
-		P1 = (unsigned char)(i+10);
+		P2 = (unsigned char)(i+10);
 		delay(10);
 		latch=0;
 		delay(10);

@@ -1,4 +1,4 @@
-C51 COMPILER V9.56.0.0   TEST                                                              04/18/2018 00:03:18 PAGE 1   
+C51 COMPILER V9.56.0.0   TEST                                                              04/18/2018 00:08:21 PAGE 1   
 
 
 C51 COMPILER V9.56.0.0, COMPILATION OF MODULE TEST
@@ -11,7 +11,7 @@ line level    source
    1          /*
    2          
    3          * Project Name:   Table Clock
-   4          * Author List:    Karan Mamaniya
+   4          * Author List:    Karan Mamaniya (kmamaniya@gmail.com)
    5          * Filename:     test.c
    6          * Functions:    
    7          * Global Variables: currentTime, AlarmTime, dispArr[], dispArr1[]
@@ -62,7 +62,7 @@ line level    source
   52          * Function Name:  CalculateDateTo7seg
   53          * Input:      char *
   54          * Output:     void, values updates in the display array
-C51 COMPILER V9.56.0.0   TEST                                                              04/18/2018 00:03:18 PAGE 2   
+C51 COMPILER V9.56.0.0   TEST                                                              04/18/2018 00:08:21 PAGE 2   
 
   55          * Logic:      decode BCD from decimal data
   56          */
@@ -126,7 +126,7 @@ line level    source
  113          
  114          /*
  115          * Function Name:  display
-C51 COMPILER V9.56.0.0   TEST                                                              04/18/2018 00:03:18 PAGE 3   
+C51 COMPILER V9.56.0.0   TEST                                                              04/18/2018 00:08:21 PAGE 3   
 
  116          * Input:      void
  117          * Output:     void, Displays time, date, temperature on 7 Segment LED
@@ -153,9 +153,9 @@ line level    source
  138   1        
  139   1        //DATE DISPLAY
  140   1        for(i=0;i<10;i++){
- 141   2          P2 = dispArr[i];
+ 141   2          P1 = dispArr[i];
  142   2          delay(10);
- 143   2          P1 = (unsigned char)i;
+ 143   2          P2 = (unsigned char)i;
  144   2          delay(10);
  145   2          latch=0;
  146   2          delay(10);
@@ -167,9 +167,9 @@ line level    source
  152   1        
  153   1        //TIME DISPLAY
  154   1        for(i=0;i<6;i++){
- 155   2          P2 = dispArr1[i];
+ 155   2          P1 = dispArr1[i];
  156   2          delay(10);
- 157   2          P1 = (unsigned char)(i+10);
+ 157   2          P2 = (unsigned char)(i+10);
  158   2          delay(10);
  159   2          latch=0;
  160   2          delay(10);
@@ -190,7 +190,7 @@ line level    source
  174          void setTime(){
  175   1        int i;
  176   1        timeset=0;
-C51 COMPILER V9.56.0.0   TEST                                                              04/18/2018 00:03:18 PAGE 4   
+C51 COMPILER V9.56.0.0   TEST                                                              04/18/2018 00:08:21 PAGE 4   
 
  177   1        bitflag=0;
  178   1          while(1){
@@ -254,7 +254,7 @@ line level    source
  236   4                  while(changeunits!=1);
  237   4                  switch(bitflag){
  238   5                    case 0: HH++;
-C51 COMPILER V9.56.0.0   TEST                                                              04/18/2018 00:03:18 PAGE 5   
+C51 COMPILER V9.56.0.0   TEST                                                              04/18/2018 00:08:21 PAGE 5   
 
  239   5                            if(HH>12)
  240   5                              HH=1;
@@ -318,7 +318,7 @@ line level    source
  297   2            
  298   2          //IF INCREMENT IS PRESSED
  299   2          if(changetens==0){
-C51 COMPILER V9.56.0.0   TEST                                                              04/18/2018 00:03:18 PAGE 6   
+C51 COMPILER V9.56.0.0   TEST                                                              04/18/2018 00:08:21 PAGE 6   
 
  300   3            delay(debounceTime);
  301   3            if(changetens==0){
@@ -382,7 +382,7 @@ line level    source
  359   2          if(modepin==0){
  360   3            delay(debounceTime);
  361   3            if(modepin==0){
-C51 COMPILER V9.56.0.0   TEST                                                              04/18/2018 00:03:18 PAGE 7   
+C51 COMPILER V9.56.0.0   TEST                                                              04/18/2018 00:08:21 PAGE 7   
 
  362   4              while(modepin!=1);
  363   4              setTime();
@@ -446,7 +446,7 @@ line level    source
  420   3                delay(debounceTime);
  421   3                if(changeunits==0){
  422   4                  while(changeunits!=1);
-C51 COMPILER V9.56.0.0   TEST                                                              04/18/2018 00:03:18 PAGE 8   
+C51 COMPILER V9.56.0.0   TEST                                                              04/18/2018 00:08:21 PAGE 8   
 
  423   4                  if(bitflag==0){
  424   5                    AlarmHH[j]++;
@@ -510,7 +510,7 @@ line level    source
  481   1        //Set_DS1307_RTC_Time(PM_Time, 12, 59, 58); // Set time 12:59:58 PM
  482   1        //Set_DS1307_RTC_Date(24, 8, 18, 0);  // Set Set 24-08-2017
  483   1        while(1){
-C51 COMPILER V9.56.0.0   TEST                                                              04/18/2018 00:03:18 PAGE 9   
+C51 COMPILER V9.56.0.0   TEST                                                              04/18/2018 00:08:21 PAGE 9   
 
  484   2          flag=0;
  485   2          CalculateDateTo7seg(Get_DS1307_RTC_Date());
