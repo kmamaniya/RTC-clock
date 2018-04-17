@@ -13,8 +13,7 @@
 #include <reg51.h>
 #define debounceTime 5000
 
-long currentTime;
-long AlarmTime;
+unsigned short currentTime;
 unsigned char dispArr1[7];
 unsigned char dispArr[10];
 sbit modepin = P0^0;
@@ -26,10 +25,11 @@ sbit PMLed = P3^3;
 sbit buzzer = P3^4;
 sbit latch = P3^0;
 int flag=0;
-unsigned char AlarmHH=1;
-unsigned char AlarmMM=0;
-unsigned char AlarmAP=0;
-unsigned char YY1=20,YY2,MM,DD,HH,MIN,SS,AP;
+unsigned char AlarmHH[10]={1,1,1,1,1,1,1,1,1,1};
+unsigned char AlarmMM[10]={0,0,0,0,0,0,0,0,0,0};
+unsigned char AlarmAP[10]={0,0,0,0,0,0,0,0,0,0};
+unsigned char YY1=20,YY2,MM,DD,HH,MIN,SS,AP,temperature;
+unsigned short AlarmTime[10];
 int bitflag=0;
 int timeset=0;
 int tempflag=0;
@@ -42,8 +42,9 @@ int tempflag=0;
 */
 void CalculateTempTo7seg(unsigned char temp){
 	//Temperature
-	dispArr[8]=temp/10;
-	dispArr[9]=temp%10;
+	temperature=temp;
+	dispArr[8]=temperature/10;
+	dispArr[9]=temperature%10;
 	delay(100);
 }
 
@@ -137,9 +138,9 @@ void display(){
 	
 	//DATE DISPLAY
 	for(i=0;i<10;i++){
-		P1 = dispArr[i];
+		P2 = dispArr[i];
 		delay(10);
-		P2 = (unsigned char)i;
+		P1 = (unsigned char)i;
 		delay(10);
 		latch=0;
 		delay(10);
@@ -151,9 +152,9 @@ void display(){
 	
 	//TIME DISPLAY
 	for(i=0;i<6;i++){
-		P1 = dispArr1[i];
+		P2 = dispArr1[i];
 		delay(10);
-		P2 = (unsigned char)(i+10);
+		P1 = (unsigned char)(i+10);
 		delay(10);
 		latch=0;
 		delay(10);
@@ -373,88 +374,94 @@ void setDate(){
 * Logic:			update even if no changed made, Store the variables temporarily in AlarmHH,AlarmMM,AlarmSS,AlarmAP, display 0 for rest pf the values 
 */
 void setAlarm(){
-		int i=0;
-		bitflag=0;
-		while(flag<2){
-			
-			for(i=0;i<10;i++)			// DISPLAY 00 00 0000 for date
-				dispArr[i]=0;
+			int j=0;		
+			int i=0;
+			bitflag=0;
+			while(flag<2){
 				
-			dispArr1[0]=AlarmHH/10;		//Display stored alarm or default alarm on 7 seg display
-			dispArr1[1]=AlarmHH%10;
-			dispArr1[2]=AlarmMM/10;
-			dispArr1[3]=AlarmMM%10;
-			dispArr1[4]=0;
-			dispArr1[5]=0;
-			dispArr1[6]=AlarmAP;
-			display();
-			
-			//IF DECREMENT IS PRESSED
-			if(changetens==0){
-				delay(debounceTime);
+				for(i=0;i<8;i++)			// DISPLAY 00 00 0000 for date
+					dispArr[i]=0;
+					
+				dispArr1[0]=AlarmHH[j]/10;		//Display stored alarm or default alarm on 7 seg display
+				dispArr1[1]=AlarmHH[j]%10;
+				dispArr1[2]=AlarmMM[j]/10;
+				dispArr1[3]=AlarmMM[j]%10;
+				dispArr1[4]=0;
+				dispArr1[5]=0;
+				dispArr[8]=(j+1)/10;
+				dispArr[9]=(j+1)%10;
+				dispArr1[6]=AlarmAP[j];
+				display();
+				
+				//IF DECREMENT IS PRESSED
 				if(changetens==0){
-					while(changetens!=1 );
-					if(bitflag==0){
-						AlarmHH--;
-						if(AlarmHH==0)
-							AlarmHH=12;
-					}
-					else if(bitflag==1){
-						AlarmMM--;
-						if(AlarmMM>=60)
-							AlarmMM=59;
-					}
-					else {
-							AlarmAP++;
-							AlarmAP%=2;
+					delay(debounceTime);
+					if(changetens==0){
+						while(changetens!=1 );
+						if(bitflag==0){
+							AlarmHH[j]--;
+							if(AlarmHH[j]==0)
+								AlarmHH[j]=12;
+						}
+						else if(bitflag==1){
+							AlarmMM[j]--;
+							if(AlarmMM[j]>=60)
+								AlarmMM[j]=59;
+						}
+						else {
+								AlarmAP[j]++;
+								AlarmAP[j]%=2;
+						}
 					}
 				}
-			}
-			
-			//IF INCREMENT IS PRESSED
-			if(changeunits==0){
-				delay(debounceTime);
+				
+				//IF INCREMENT IS PRESSED
 				if(changeunits==0){
-					while(changeunits!=1);
-					if(bitflag==0){
-						AlarmHH++;
-						if(AlarmHH>12)
-							AlarmHH=1;
-					}
-					else if(bitflag==1){
-						AlarmMM++;
-						AlarmMM%=60;
-					}
-					else {
-							AlarmAP++;
-							AlarmAP%=2;
+					delay(debounceTime);
+					if(changeunits==0){
+						while(changeunits!=1);
+						if(bitflag==0){
+							AlarmHH[j]++;
+							if(AlarmHH[j]>12)
+								AlarmHH[j]=1;
+						}
+						else if(bitflag==1){
+							AlarmMM[j]++;
+							AlarmMM[j]%=60;
+						}
+						else {
+								AlarmAP[j]++;
+								AlarmAP[j]%=2;
+						}
 					}
 				}
-			}
-			
-			//IF CHANGE BLOCK IS PRESSED
-			if(setpin==0){
-				delay(debounceTime);
+				
+				//IF CHANGE BLOCK IS PRESSED
 				if(setpin==0){
-					while(setpin!=1);
-					bitflag++;
-					bitflag%=3;
+					delay(debounceTime);
+					if(setpin==0){
+						while(setpin!=1);
+						bitflag++;
+						bitflag%=3;
+					}
 				}
-			}
-			
-			//IF CHANGE MODE IS PRESSED
-			if(modepin==0){
-			delay(debounceTime);
+				
+				//IF CHANGE MODE IS PRESSED
 				if(modepin==0){
-					while(modepin!=1);
-					setDate();
+				delay(debounceTime);
+					if(modepin==0){
+						while(modepin!=1);
+						j++;
+						if(j==10)
+							setDate();
+					}
 				}
 			}
-		}
-		
-		AlarmTime=60*AlarmHH+AlarmMM + AlarmAP*720;		// update stored alarm time for comparison
-		flag=0;
-	delay(100);
+			for(j=0;j<10;j++){
+				AlarmTime[j]=60*AlarmHH[j]+AlarmMM[j] + AlarmAP[j]*720;		// update stored alarm time for comparison
+				flag=0;
+				delay(100);
+			}
 }
 
 /*

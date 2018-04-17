@@ -1,4 +1,4 @@
-C51 COMPILER V9.56.0.0   TEST                                                              04/05/2018 20:10:14 PAGE 1   
+C51 COMPILER V9.56.0.0   TEST                                                              04/18/2018 00:03:18 PAGE 1   
 
 
 C51 COMPILER V9.56.0.0, COMPILATION OF MODULE TEST
@@ -23,23 +23,23 @@ line level    source
   13          #include <reg51.h>
   14          #define debounceTime 5000
   15          
-  16          long currentTime;
-  17          long AlarmTime;
-  18          unsigned char dispArr1[7];
-  19          unsigned char dispArr[10];
-  20          sbit modepin = P0^0;
-  21          sbit changetens = P0^1;
-  22          sbit changeunits= P0^2;
-  23          sbit setpin = P0^3;
-  24          sbit AMLed = P3^2;
-  25          sbit PMLed = P3^3;
-  26          sbit buzzer = P3^4;
-  27          sbit latch = P3^0;
-  28          int flag=0;
-  29          unsigned char AlarmHH=1;
-  30          unsigned char AlarmMM=0;
-  31          unsigned char AlarmAP=0;
-  32          unsigned char YY1=20,YY2,MM,DD,HH,MIN,SS,AP;
+  16          unsigned short currentTime;
+  17          unsigned char dispArr1[7];
+  18          unsigned char dispArr[10];
+  19          sbit modepin = P0^0;
+  20          sbit changetens = P0^1;
+  21          sbit changeunits= P0^2;
+  22          sbit setpin = P0^3;
+  23          sbit AMLed = P3^2;
+  24          sbit PMLed = P3^3;
+  25          sbit buzzer = P3^4;
+  26          sbit latch = P3^0;
+  27          int flag=0;
+  28          unsigned char AlarmHH[10]={1,1,1,1,1,1,1,1,1,1};
+  29          unsigned char AlarmMM[10]={0,0,0,0,0,0,0,0,0,0};
+  30          unsigned char AlarmAP[10]={0,0,0,0,0,0,0,0,0,0};
+  31          unsigned char YY1=20,YY2,MM,DD,HH,MIN,SS,AP,temperature;
+  32          unsigned short AlarmTime[10];
   33          int bitflag=0;
   34          int timeset=0;
   35          int tempflag=0;
@@ -52,492 +52,499 @@ line level    source
   42          */
   43          void CalculateTempTo7seg(unsigned char temp){
   44   1        //Temperature
-  45   1        dispArr[8]=temp/10;
-  46   1        dispArr[9]=temp%10;
-  47   1        delay(100);
-  48   1      }
-  49          
-  50          /*
-  51          * Function Name:  CalculateDateTo7seg
-  52          * Input:      char *
-  53          * Output:     void, values updates in the display array
-  54          * Logic:      decode BCD from decimal data
-C51 COMPILER V9.56.0.0   TEST                                                              04/05/2018 20:10:14 PAGE 2   
+  45   1        temperature=temp;
+  46   1        dispArr[8]=temperature/10;
+  47   1        dispArr[9]=temperature%10;
+  48   1        delay(100);
+  49   1      }
+  50          
+  51          /*
+  52          * Function Name:  CalculateDateTo7seg
+  53          * Input:      char *
+  54          * Output:     void, values updates in the display array
+C51 COMPILER V9.56.0.0   TEST                                                              04/18/2018 00:03:18 PAGE 2   
 
-  55          */
-  56          void CalculateDateTo7seg(char * pDateArray){   // Displays date in DD:MM:YYYY format
-  57   1        
-  58   1        //Date
-  59   1        DD=pDateArray[1];
-  60   1        dispArr[0]=(char)(DD/10);
-  61   1        dispArr[1]=(char)(DD%10);
-  62   1        delay(100);
-  63   1        
-  64   1        //Months
-  65   1        MM=pDateArray[2];
-  66   1        dispArr[2]=(char)(MM/10);
-  67   1        dispArr[3]=(char)(MM%10);
-  68   1        delay(100);
-  69   1        
-  70   1        //Year
-  71   1        dispArr[4]=(char)YY1/10;
-  72   1        dispArr[5]=(char)YY1%10;
-  73   1        YY2=pDateArray[3];
-  74   1        dispArr[6]=(char)(YY2/10);
-  75   1        dispArr[7]=(char)(YY2%10);
-  76   1        YY2=pDateArray[3];
-  77   1        delay(100);
-  78   1      }
-  79          
-  80          /*
-  81          * Function Name:  CalculateTimeTo7seg
-  82          * Input:      char *
-  83          * Output:     void, values updates in the display array
-  84          * Logic:      decode BCD from decimal data, store the current time in a variable
-  85          */
-  86          void CalculateTimeTo7seg(char *pTimeArray) {  // Displays date in DD:MM:YYYY format
-  87   1        
-  88   1        //Hours
-  89   1        HH=pTimeArray[2];
-  90   1        dispArr1[0]=(HH/10);
-  91   1        dispArr1[1]=(HH%10);
-  92   1        delay(100);
-  93   1        
-  94   1        //Minutes
-  95   1        MIN=pTimeArray[1];
-  96   1        dispArr1[2]=(MIN/10);
-  97   1        dispArr1[3]=(MIN%10);
-  98   1        delay(100);
-  99   1        
- 100   1        //Seconds
- 101   1        SS=pTimeArray[0];
- 102   1        dispArr1[4]=(SS/10);
- 103   1        dispArr1[5]=(SS%10);
- 104   1        delay(100);
- 105   1        
- 106   1        //AM PM
- 107   1        AP=(unsigned char)pTimeArray[3];
- 108   1        dispArr1[6]=AP;
- 109   1        currentTime = 60*pTimeArray[2]+pTimeArray[1] + AP*720;    // 60 MINS * NO. OF HOURS + MINUTES  + 12 HOURS
+  55          * Logic:      decode BCD from decimal data
+  56          */
+  57          void CalculateDateTo7seg(char * pDateArray){   // Displays date in DD:MM:YYYY format
+  58   1        
+  59   1        //Date
+  60   1        DD=pDateArray[1];
+  61   1        dispArr[0]=(char)(DD/10);
+  62   1        dispArr[1]=(char)(DD%10);
+  63   1        delay(100);
+  64   1        
+  65   1        //Months
+  66   1        MM=pDateArray[2];
+  67   1        dispArr[2]=(char)(MM/10);
+  68   1        dispArr[3]=(char)(MM%10);
+  69   1        delay(100);
+  70   1        
+  71   1        //Year
+  72   1        dispArr[4]=(char)YY1/10;
+  73   1        dispArr[5]=(char)YY1%10;
+  74   1        YY2=pDateArray[3];
+  75   1        dispArr[6]=(char)(YY2/10);
+  76   1        dispArr[7]=(char)(YY2%10);
+  77   1        YY2=pDateArray[3];
+  78   1        delay(100);
+  79   1      }
+  80          
+  81          /*
+  82          * Function Name:  CalculateTimeTo7seg
+  83          * Input:      char *
+  84          * Output:     void, values updates in the display array
+  85          * Logic:      decode BCD from decimal data, store the current time in a variable
+  86          */
+  87          void CalculateTimeTo7seg(char *pTimeArray) {  // Displays date in DD:MM:YYYY format
+  88   1        
+  89   1        //Hours
+  90   1        HH=pTimeArray[2];
+  91   1        dispArr1[0]=(HH/10);
+  92   1        dispArr1[1]=(HH%10);
+  93   1        delay(100);
+  94   1        
+  95   1        //Minutes
+  96   1        MIN=pTimeArray[1];
+  97   1        dispArr1[2]=(MIN/10);
+  98   1        dispArr1[3]=(MIN%10);
+  99   1        delay(100);
+ 100   1        
+ 101   1        //Seconds
+ 102   1        SS=pTimeArray[0];
+ 103   1        dispArr1[4]=(SS/10);
+ 104   1        dispArr1[5]=(SS%10);
+ 105   1        delay(100);
+ 106   1        
+ 107   1        //AM PM
+ 108   1        AP=(unsigned char)pTimeArray[3];
+ 109   1        dispArr1[6]=AP;
+ 110   1        currentTime = 60*pTimeArray[2]+pTimeArray[1] + AP*720;    // 60 MINS * NO. OF HOURS + MINUTES  + 12 HOURS
              - for AM/PM
- 110   1        delay(100);
- 111   1      }
- 112          
- 113          /*
- 114          * Function Name:  display
- 115          * Input:      void
-C51 COMPILER V9.56.0.0   TEST                                                              04/05/2018 20:10:14 PAGE 3   
+ 111   1        delay(100);
+ 112   1      }
+ 113          
+ 114          /*
+ 115          * Function Name:  display
+C51 COMPILER V9.56.0.0   TEST                                                              04/18/2018 00:03:18 PAGE 3   
 
- 116          * Output:     void, Displays time, date, temperature on 7 Segment LED
- 117          * Logic:      chose the led to be displayed by address on port 1 and latch it with data by port 2
- 118          */
- 119          void display(){
- 120   1        char i;
- 121   1        
- 122   1        /// AM PM LED DISPLAY
- 123   1        if(dispArr1[6]==1){
- 124   2          PMLed=1;delay(100);
- 125   2          AMLed=0;
- 126   2        }
- 127   1        else if(dispArr1[6]==0){
- 128   2          PMLed=0;delay(100);
- 129   2          AMLed=1;
- 130   2        }
- 131   1        else{
- 132   2          PMLed=0;delay(100);
- 133   2          AMLed=0;
- 134   2        }
- 135   1        delay(100);
- 136   1        
+ 116          * Input:      void
+ 117          * Output:     void, Displays time, date, temperature on 7 Segment LED
+ 118          * Logic:      chose the led to be displayed by address on port 1 and latch it with data by port 2
+ 119          */
+ 120          void display(){
+ 121   1        char i;
+ 122   1        
+ 123   1        /// AM PM LED DISPLAY
+ 124   1        if(dispArr1[6]==1){
+ 125   2          PMLed=1;delay(100);
+ 126   2          AMLed=0;
+ 127   2        }
+ 128   1        else if(dispArr1[6]==0){
+ 129   2          PMLed=0;delay(100);
+ 130   2          AMLed=1;
+ 131   2        }
+ 132   1        else{
+ 133   2          PMLed=0;delay(100);
+ 134   2          AMLed=0;
+ 135   2        }
+ 136   1        delay(100);
  137   1        
- 138   1        //DATE DISPLAY
- 139   1        for(i=0;i<10;i++){
- 140   2          P1 = dispArr[i];
- 141   2          delay(10);
- 142   2          P2 = (unsigned char)i;
- 143   2          delay(10);
- 144   2          latch=0;
- 145   2          delay(10);
- 146   2          latch=1;
- 147   2          delay(10);
- 148   2        }
- 149   1        delay(100);
- 150   1        
+ 138   1        
+ 139   1        //DATE DISPLAY
+ 140   1        for(i=0;i<10;i++){
+ 141   2          P2 = dispArr[i];
+ 142   2          delay(10);
+ 143   2          P1 = (unsigned char)i;
+ 144   2          delay(10);
+ 145   2          latch=0;
+ 146   2          delay(10);
+ 147   2          latch=1;
+ 148   2          delay(10);
+ 149   2        }
+ 150   1        delay(100);
  151   1        
- 152   1        //TIME DISPLAY
- 153   1        for(i=0;i<6;i++){
- 154   2          P1 = dispArr1[i];
- 155   2          delay(10);
- 156   2          P2 = (unsigned char)(i+10);
- 157   2          delay(10);
- 158   2          latch=0;
- 159   2          delay(10);
- 160   2          latch=1;
- 161   2          delay(10);
- 162   2        }
- 163   1        delay(100);
- 164   1      }
- 165          
+ 152   1        
+ 153   1        //TIME DISPLAY
+ 154   1        for(i=0;i<6;i++){
+ 155   2          P2 = dispArr1[i];
+ 156   2          delay(10);
+ 157   2          P1 = (unsigned char)(i+10);
+ 158   2          delay(10);
+ 159   2          latch=0;
+ 160   2          delay(10);
+ 161   2          latch=1;
+ 162   2          delay(10);
+ 163   2        }
+ 164   1        delay(100);
+ 165   1      }
  166          
- 167          /*x
- 168          * Function Name:  setTime
- 169          * Input:      void
- 170          * Output:     void, sets user inputed time in the RTC
- 171          * Logic:      dont update if no changed made, Store the variables temporarily in HH,MM,SS, AP display 0 for r
+ 167          
+ 168          /*x
+ 169          * Function Name:  setTime
+ 170          * Input:      void
+ 171          * Output:     void, sets user inputed time in the RTC
+ 172          * Logic:      dont update if no changed made, Store the variables temporarily in HH,MM,SS, AP display 0 for r
              -est of the values 
- 172          */
- 173          void setTime(){
- 174   1        int i;
- 175   1        timeset=0;
- 176   1        bitflag=0;
-C51 COMPILER V9.56.0.0   TEST                                                              04/05/2018 20:10:14 PAGE 4   
+ 173          */
+ 174          void setTime(){
+ 175   1        int i;
+ 176   1        timeset=0;
+C51 COMPILER V9.56.0.0   TEST                                                              04/18/2018 00:03:18 PAGE 4   
 
- 177   1          while(1){
- 178   2              if(modepin==0){
- 179   3                delay(debounceTime);
- 180   3                if(modepin==0){
- 181   4                  while(modepin!=1);
- 182   4                  flag = 2;
- 183   4                  if(timeset==1)      // SET TIME ONLY IF CHANGED
- 184   4                    Set_DS1307_RTC_Time(AP,HH,MIN,SS);
- 185   4                  Set_DS1307_RTC_Date(DD,MM,YY2,4);
- 186   4                  break;
- 187   4                }
- 188   3              }
- 189   2              for(i=0;i<10;i++)     //Make the date segment 00 00 0000
- 190   2                dispArr[i]=0;
- 191   2              
- 192   2              dispArr1[0]=HH/10;      //Display the temporary variables
- 193   2              dispArr1[1]=HH%10;
- 194   2              dispArr1[2]=MIN/10;
- 195   2              dispArr1[3]=MIN%10;
- 196   2              dispArr1[4]=SS/10;
- 197   2              dispArr1[5]=SS%10;
- 198   2              dispArr1[6]=AP;
- 199   2              
- 200   2              display();
- 201   2              
+ 177   1        bitflag=0;
+ 178   1          while(1){
+ 179   2              if(modepin==0){
+ 180   3                delay(debounceTime);
+ 181   3                if(modepin==0){
+ 182   4                  while(modepin!=1);
+ 183   4                  flag = 2;
+ 184   4                  if(timeset==1)      // SET TIME ONLY IF CHANGED
+ 185   4                    Set_DS1307_RTC_Time(AP,HH,MIN,SS);
+ 186   4                  Set_DS1307_RTC_Date(DD,MM,YY2,4);
+ 187   4                  break;
+ 188   4                }
+ 189   3              }
+ 190   2              for(i=0;i<10;i++)     //Make the date segment 00 00 0000
+ 191   2                dispArr[i]=0;
+ 192   2              
+ 193   2              dispArr1[0]=HH/10;      //Display the temporary variables
+ 194   2              dispArr1[1]=HH%10;
+ 195   2              dispArr1[2]=MIN/10;
+ 196   2              dispArr1[3]=MIN%10;
+ 197   2              dispArr1[4]=SS/10;
+ 198   2              dispArr1[5]=SS%10;
+ 199   2              dispArr1[6]=AP;
+ 200   2              
+ 201   2              display();
  202   2              
- 203   2              // IF DECREMENT IS PRESSED
- 204   2              if(changetens==0){
- 205   3                delay(debounceTime);
- 206   3                if(changetens==0){
- 207   4                  timeset=1;        //marks change in value, hence update time
- 208   4                  while(changetens!=1);
- 209   4                  switch(bitflag){
- 210   5                    case 0: HH--;
- 211   5                            if(HH==0)
- 212   5                              HH=12;
- 213   5                            break;
- 214   5                    case 1: MIN--;
- 215   5                            if(MIN>=60)
- 216   5                              MIN=59;
- 217   5                            break;
- 218   5                    case 2: SS--;
- 219   5                            if(SS>=60)
- 220   5                              SS=59;
- 221   5                            break;
- 222   5                    case 3: AP++;
- 223   5                            AP%=2;
- 224   5                    default: break;
- 225   5                  }
- 226   4                }
- 227   3              }
- 228   2              
+ 203   2              
+ 204   2              // IF DECREMENT IS PRESSED
+ 205   2              if(changetens==0){
+ 206   3                delay(debounceTime);
+ 207   3                if(changetens==0){
+ 208   4                  timeset=1;        //marks change in value, hence update time
+ 209   4                  while(changetens!=1);
+ 210   4                  switch(bitflag){
+ 211   5                    case 0: HH--;
+ 212   5                            if(HH==0)
+ 213   5                              HH=12;
+ 214   5                            break;
+ 215   5                    case 1: MIN--;
+ 216   5                            if(MIN>=60)
+ 217   5                              MIN=59;
+ 218   5                            break;
+ 219   5                    case 2: SS--;
+ 220   5                            if(SS>=60)
+ 221   5                              SS=59;
+ 222   5                            break;
+ 223   5                    case 3: AP++;
+ 224   5                            AP%=2;
+ 225   5                    default: break;
+ 226   5                  }
+ 227   4                }
+ 228   3              }
  229   2              
- 230   2              // IF INCREMENT IS PRESSED
- 231   2              if(changeunits==0){
- 232   3                delay(debounceTime);
- 233   3                if(changeunits==0){
- 234   4                  timeset=1;      //marks change in value, hence update time
- 235   4                  while(changeunits!=1);
- 236   4                  switch(bitflag){
- 237   5                    case 0: HH++;
- 238   5                            if(HH>12)
-C51 COMPILER V9.56.0.0   TEST                                                              04/05/2018 20:10:14 PAGE 5   
+ 230   2              
+ 231   2              // IF INCREMENT IS PRESSED
+ 232   2              if(changeunits==0){
+ 233   3                delay(debounceTime);
+ 234   3                if(changeunits==0){
+ 235   4                  timeset=1;      //marks change in value, hence update time
+ 236   4                  while(changeunits!=1);
+ 237   4                  switch(bitflag){
+ 238   5                    case 0: HH++;
+C51 COMPILER V9.56.0.0   TEST                                                              04/18/2018 00:03:18 PAGE 5   
 
- 239   5                              HH=1;
- 240   5                            break;
- 241   5                    case 1: MIN++;
- 242   5                            MIN=MIN%60;
- 243   5                            break;
- 244   5                    case 2: SS++;
- 245   5                            SS=SS%60;
- 246   5                            break;
- 247   5                    case 3: AP++;
- 248   5                            AP%=2;
- 249   5                    default: break;
- 250   5                  }
- 251   4                }
- 252   3              }
- 253   2              
+ 239   5                            if(HH>12)
+ 240   5                              HH=1;
+ 241   5                            break;
+ 242   5                    case 1: MIN++;
+ 243   5                            MIN=MIN%60;
+ 244   5                            break;
+ 245   5                    case 2: SS++;
+ 246   5                            SS=SS%60;
+ 247   5                            break;
+ 248   5                    case 3: AP++;
+ 249   5                            AP%=2;
+ 250   5                    default: break;
+ 251   5                  }
+ 252   4                }
+ 253   3              }
  254   2              
- 255   2            //IF CHANGE BLOCK IS PRESSED
- 256   2            if(setpin==0){
- 257   3              delay(debounceTime);
- 258   3              if(setpin==0){
- 259   4                while(setpin!=1);
- 260   4                bitflag++;
- 261   4                bitflag%=4;
- 262   4              }
- 263   3            }
- 264   2          }
- 265   1        delay(100);
- 266   1      }
- 267          
+ 255   2              
+ 256   2            //IF CHANGE BLOCK IS PRESSED
+ 257   2            if(setpin==0){
+ 258   3              delay(debounceTime);
+ 259   3              if(setpin==0){
+ 260   4                while(setpin!=1);
+ 261   4                bitflag++;
+ 262   4                bitflag%=4;
+ 263   4              }
+ 264   3            }
+ 265   2          }
+ 266   1        delay(100);
+ 267   1      }
  268          
- 269          /*
- 270          * Function Name:  setDate
- 271          * Input:      void
- 272          * Output:     void, sets user inputed date in the RTC
+ 269          
+ 270          /*
+ 271          * Function Name:  setDate
+ 272          * Input:      void
  273          * Output:     void, sets user inputed date in the RTC
- 274          * Logic:      update even if no changed made, Store the variables temporarily in DD,MM,YYYY display 0 for res
+ 274          * Output:     void, sets user inputed date in the RTC
+ 275          * Logic:      update even if no changed made, Store the variables temporarily in DD,MM,YYYY display 0 for res
              -t of the values 
- 275          */
- 276          void setDate(){
- 277   1          int i;
- 278   1          bitflag=0;
- 279   1          while(flag<2){
- 280   2          for(i=0;i<6;i++)      //display 00:00:00 for time
- 281   2            dispArr1[i]=0;
- 282   2          
+ 276          */
+ 277          void setDate(){
+ 278   1          int i;
+ 279   1          bitflag=0;
+ 280   1          while(flag<2){
+ 281   2          for(i=0;i<6;i++)      //display 00:00:00 for time
+ 282   2            dispArr1[i]=0;
  283   2          
- 284   2          dispArr1[6]=2;        //Display temporary variables
- 285   2          dispArr[8]=0;
- 286   2          dispArr[9]=0;
- 287   2          dispArr[0]=DD/10;
- 288   2          dispArr[1]=DD%10;
- 289   2          dispArr[2]=MM/10;
- 290   2          dispArr[3]=MM%10;
- 291   2          dispArr[4]=YY1/10;
- 292   2          dispArr[5]=YY1%10;
- 293   2          dispArr[6]=YY2/10;
- 294   2          dispArr[7]=YY2%10;
- 295   2          display();
- 296   2            
- 297   2          //IF INCREMENT IS PRESSED
- 298   2          if(changetens==0){
- 299   3            delay(debounceTime);
-C51 COMPILER V9.56.0.0   TEST                                                              04/05/2018 20:10:14 PAGE 6   
+ 284   2          
+ 285   2          dispArr1[6]=2;        //Display temporary variables
+ 286   2          dispArr[8]=0;
+ 287   2          dispArr[9]=0;
+ 288   2          dispArr[0]=DD/10;
+ 289   2          dispArr[1]=DD%10;
+ 290   2          dispArr[2]=MM/10;
+ 291   2          dispArr[3]=MM%10;
+ 292   2          dispArr[4]=YY1/10;
+ 293   2          dispArr[5]=YY1%10;
+ 294   2          dispArr[6]=YY2/10;
+ 295   2          dispArr[7]=YY2%10;
+ 296   2          display();
+ 297   2            
+ 298   2          //IF INCREMENT IS PRESSED
+ 299   2          if(changetens==0){
+C51 COMPILER V9.56.0.0   TEST                                                              04/18/2018 00:03:18 PAGE 6   
 
- 300   3            if(changetens==0){
- 301   4              while(changetens!=1);
- 302   4              switch(bitflag){
- 303   5                case 0: DD--;
- 304   5                        if(DD==0)
- 305   5                          DD=31;
- 306   5                        break;
- 307   5                case 1: MM--;
- 308   5                        if(MM==0)
- 309   5                          MM=12;
- 310   5                        break;
- 311   5                case 2: YY1--;
- 312   5                        if(YY1>99)
- 313   5                          YY1=99;
- 314   5                        break;
- 315   5                case 3: YY2--;
- 316   5                        if(YY2>99)
- 317   5                          YY2=99;
- 318   5                default: break;
- 319   5              }
- 320   4            }
- 321   3          }
- 322   2          
- 323   2          //IF DECREMENT IS PRESSED
- 324   2          if(changeunits==0){
- 325   3            delay(debounceTime);
- 326   3            if(changeunits==0){
- 327   4              while(changeunits!=1);
- 328   4              switch(bitflag){
- 329   5                case 0: DD++;
- 330   5                        if(DD>31)
- 331   5                          DD=1;
- 332   5                        break;
- 333   5                case 1: MM++;
- 334   5                        if(MM>12)
- 335   5                          MM=1;
- 336   5                        break;
- 337   5                case 2: YY1++;
- 338   5                        YY1%=100;
- 339   5                        break;
- 340   5                case 3: YY2++;
- 341   5                        YY2%=100;
- 342   5                default: break;
- 343   5              }
- 344   4            }
- 345   3          }
- 346   2          
- 347   2          //IF CHANGE BLOCK IS PRESSED
- 348   2          if(setpin==0){
- 349   3            delay(debounceTime);
- 350   3            if(setpin==0){
- 351   4              while(setpin!=1);
- 352   4              bitflag++;
- 353   4              bitflag%=4;
- 354   4            }
- 355   3          }
- 356   2          
- 357   2          //IF CHANGE MODE IS PRESSED
- 358   2          if(modepin==0){
- 359   3            delay(debounceTime);
- 360   3            if(modepin==0){
- 361   4              while(modepin!=1);
-C51 COMPILER V9.56.0.0   TEST                                                              04/05/2018 20:10:14 PAGE 7   
+ 300   3            delay(debounceTime);
+ 301   3            if(changetens==0){
+ 302   4              while(changetens!=1);
+ 303   4              switch(bitflag){
+ 304   5                case 0: DD--;
+ 305   5                        if(DD==0)
+ 306   5                          DD=31;
+ 307   5                        break;
+ 308   5                case 1: MM--;
+ 309   5                        if(MM==0)
+ 310   5                          MM=12;
+ 311   5                        break;
+ 312   5                case 2: YY1--;
+ 313   5                        if(YY1>99)
+ 314   5                          YY1=99;
+ 315   5                        break;
+ 316   5                case 3: YY2--;
+ 317   5                        if(YY2>99)
+ 318   5                          YY2=99;
+ 319   5                default: break;
+ 320   5              }
+ 321   4            }
+ 322   3          }
+ 323   2          
+ 324   2          //IF DECREMENT IS PRESSED
+ 325   2          if(changeunits==0){
+ 326   3            delay(debounceTime);
+ 327   3            if(changeunits==0){
+ 328   4              while(changeunits!=1);
+ 329   4              switch(bitflag){
+ 330   5                case 0: DD++;
+ 331   5                        if(DD>31)
+ 332   5                          DD=1;
+ 333   5                        break;
+ 334   5                case 1: MM++;
+ 335   5                        if(MM>12)
+ 336   5                          MM=1;
+ 337   5                        break;
+ 338   5                case 2: YY1++;
+ 339   5                        YY1%=100;
+ 340   5                        break;
+ 341   5                case 3: YY2++;
+ 342   5                        YY2%=100;
+ 343   5                default: break;
+ 344   5              }
+ 345   4            }
+ 346   3          }
+ 347   2          
+ 348   2          //IF CHANGE BLOCK IS PRESSED
+ 349   2          if(setpin==0){
+ 350   3            delay(debounceTime);
+ 351   3            if(setpin==0){
+ 352   4              while(setpin!=1);
+ 353   4              bitflag++;
+ 354   4              bitflag%=4;
+ 355   4            }
+ 356   3          }
+ 357   2          
+ 358   2          //IF CHANGE MODE IS PRESSED
+ 359   2          if(modepin==0){
+ 360   3            delay(debounceTime);
+ 361   3            if(modepin==0){
+C51 COMPILER V9.56.0.0   TEST                                                              04/18/2018 00:03:18 PAGE 7   
 
- 362   4              setTime();
- 363   4            }
- 364   3          }
- 365   2        } 
- 366   1        delay(100);
- 367   1      }
- 368          
- 369          /*
- 370          * Function Name:  setAlarm
- 371          * Input:      void
- 372          * Output:     void, stores user inputed alarm in the memore
- 373          * Logic:      update even if no changed made, Store the variables temporarily in AlarmHH,AlarmMM,AlarmSS,Alar
+ 362   4              while(modepin!=1);
+ 363   4              setTime();
+ 364   4            }
+ 365   3          }
+ 366   2        } 
+ 367   1        delay(100);
+ 368   1      }
+ 369          
+ 370          /*
+ 371          * Function Name:  setAlarm
+ 372          * Input:      void
+ 373          * Output:     void, stores user inputed alarm in the memore
+ 374          * Logic:      update even if no changed made, Store the variables temporarily in AlarmHH,AlarmMM,AlarmSS,Alar
              -mAP, display 0 for rest pf the values 
- 374          */
- 375          void setAlarm(){
- 376   1          int i=0;
- 377   1          bitflag=0;
- 378   1          while(flag<2){
- 379   2            
- 380   2            for(i=0;i<10;i++)     // DISPLAY 00 00 0000 for date
- 381   2              dispArr[i]=0;
- 382   2              
- 383   2            dispArr1[0]=AlarmHH/10;   //Display stored alarm or default alarm on 7 seg display
- 384   2            dispArr1[1]=AlarmHH%10;
- 385   2            dispArr1[2]=AlarmMM/10;
- 386   2            dispArr1[3]=AlarmMM%10;
- 387   2            dispArr1[4]=0;
- 388   2            dispArr1[5]=0;
- 389   2            dispArr1[6]=AlarmAP;
- 390   2            display();
- 391   2            
- 392   2            //IF DECREMENT IS PRESSED
- 393   2            if(changetens==0){
- 394   3              delay(debounceTime);
- 395   3              if(changetens==0){
- 396   4                while(changetens!=1 );
- 397   4                if(bitflag==0){
- 398   5                  AlarmHH--;
- 399   5                  if(AlarmHH==0)
- 400   5                    AlarmHH=12;
- 401   5                }
- 402   4                else if(bitflag==1){
- 403   5                  AlarmMM--;
- 404   5                  if(AlarmMM>=60)
- 405   5                    AlarmMM=59;
- 406   5                }
- 407   4                else {
- 408   5                    AlarmAP++;
- 409   5                    AlarmAP%=2;
- 410   5                }
- 411   4              }
- 412   3            }
- 413   2            
- 414   2            //IF INCREMENT IS PRESSED
- 415   2            if(changeunits==0){
- 416   3              delay(debounceTime);
- 417   3              if(changeunits==0){
- 418   4                while(changeunits!=1);
- 419   4                if(bitflag==0){
- 420   5                  AlarmHH++;
- 421   5                  if(AlarmHH>12)
- 422   5                    AlarmHH=1;
-C51 COMPILER V9.56.0.0   TEST                                                              04/05/2018 20:10:14 PAGE 8   
+ 375          */
+ 376          void setAlarm(){
+ 377   1            int j=0;    
+ 378   1            int i=0;
+ 379   1            bitflag=0;
+ 380   1            while(flag<2){
+ 381   2              
+ 382   2              for(i=0;i<8;i++)      // DISPLAY 00 00 0000 for date
+ 383   2                dispArr[i]=0;
+ 384   2                
+ 385   2              dispArr1[0]=AlarmHH[j]/10;    //Display stored alarm or default alarm on 7 seg display
+ 386   2              dispArr1[1]=AlarmHH[j]%10;
+ 387   2              dispArr1[2]=AlarmMM[j]/10;
+ 388   2              dispArr1[3]=AlarmMM[j]%10;
+ 389   2              dispArr1[4]=0;
+ 390   2              dispArr1[5]=0;
+ 391   2              dispArr[8]=(j+1)/10;
+ 392   2              dispArr[9]=(j+1)%10;
+ 393   2              dispArr1[6]=AlarmAP[j];
+ 394   2              display();
+ 395   2              
+ 396   2              //IF DECREMENT IS PRESSED
+ 397   2              if(changetens==0){
+ 398   3                delay(debounceTime);
+ 399   3                if(changetens==0){
+ 400   4                  while(changetens!=1 );
+ 401   4                  if(bitflag==0){
+ 402   5                    AlarmHH[j]--;
+ 403   5                    if(AlarmHH[j]==0)
+ 404   5                      AlarmHH[j]=12;
+ 405   5                  }
+ 406   4                  else if(bitflag==1){
+ 407   5                    AlarmMM[j]--;
+ 408   5                    if(AlarmMM[j]>=60)
+ 409   5                      AlarmMM[j]=59;
+ 410   5                  }
+ 411   4                  else {
+ 412   5                      AlarmAP[j]++;
+ 413   5                      AlarmAP[j]%=2;
+ 414   5                  }
+ 415   4                }
+ 416   3              }
+ 417   2              
+ 418   2              //IF INCREMENT IS PRESSED
+ 419   2              if(changeunits==0){
+ 420   3                delay(debounceTime);
+ 421   3                if(changeunits==0){
+ 422   4                  while(changeunits!=1);
+C51 COMPILER V9.56.0.0   TEST                                                              04/18/2018 00:03:18 PAGE 8   
 
- 423   5                }
- 424   4                else if(bitflag==1){
- 425   5                  AlarmMM++;
- 426   5                  AlarmMM%=60;
- 427   5                }
- 428   4                else {
- 429   5                    AlarmAP++;
- 430   5                    AlarmAP%=2;
- 431   5                }
- 432   4              }
- 433   3            }
- 434   2            
- 435   2            //IF CHANGE BLOCK IS PRESSED
- 436   2            if(setpin==0){
- 437   3              delay(debounceTime);
- 438   3              if(setpin==0){
- 439   4                while(setpin!=1);
- 440   4                bitflag++;
- 441   4                bitflag%=3;
- 442   4              }
- 443   3            }
- 444   2            
- 445   2            //IF CHANGE MODE IS PRESSED
- 446   2            if(modepin==0){
- 447   3            delay(debounceTime);
- 448   3              if(modepin==0){
- 449   4                while(modepin!=1);
- 450   4                setDate();
- 451   4              }
- 452   3            }
- 453   2          }
- 454   1          
- 455   1          AlarmTime=60*AlarmHH+AlarmMM + AlarmAP*720;   // update stored alarm time for comparison
- 456   1          flag=0;
- 457   1        delay(100);
- 458   1      }
- 459          
- 460          /*
- 461          * Function Name:  main
- 462          * Input:      void
- 463          * Output:     synchronization of the whole system
- 464          * Logic:      initialization, default set time or date (if any), read from rtc, temperature sensor and displa
+ 423   4                  if(bitflag==0){
+ 424   5                    AlarmHH[j]++;
+ 425   5                    if(AlarmHH[j]>12)
+ 426   5                      AlarmHH[j]=1;
+ 427   5                  }
+ 428   4                  else if(bitflag==1){
+ 429   5                    AlarmMM[j]++;
+ 430   5                    AlarmMM[j]%=60;
+ 431   5                  }
+ 432   4                  else {
+ 433   5                      AlarmAP[j]++;
+ 434   5                      AlarmAP[j]%=2;
+ 435   5                  }
+ 436   4                }
+ 437   3              }
+ 438   2              
+ 439   2              //IF CHANGE BLOCK IS PRESSED
+ 440   2              if(setpin==0){
+ 441   3                delay(debounceTime);
+ 442   3                if(setpin==0){
+ 443   4                  while(setpin!=1);
+ 444   4                  bitflag++;
+ 445   4                  bitflag%=3;
+ 446   4                }
+ 447   3              }
+ 448   2              
+ 449   2              //IF CHANGE MODE IS PRESSED
+ 450   2              if(modepin==0){
+ 451   3              delay(debounceTime);
+ 452   3                if(modepin==0){
+ 453   4                  while(modepin!=1);
+ 454   4                  j++;
+ 455   4                  if(j==10)
+ 456   4                    setDate();
+ 457   4                }
+ 458   3              }
+ 459   2            }
+ 460   1            for(j=0;j<10;j++){
+ 461   2              AlarmTime[j]=60*AlarmHH[j]+AlarmMM[j] + AlarmAP[j]*720;   // update stored alarm time for comparison
+ 462   2              flag=0;
+ 463   2              delay(100);
+ 464   2            }
+ 465   1      }
+ 466          
+ 467          /*
+ 468          * Function Name:  main
+ 469          * Input:      void
+ 470          * Output:     synchronization of the whole system
+ 471          * Logic:      initialization, default set time or date (if any), read from rtc, temperature sensor and displa
              -y, check alarm, check id mode switch is pressed
- 465          */
- 466          void main(){  
- 467   1        modepin=1;
- 468   1        changeunits=1;
- 469   1        changetens=1;
- 470   1        setpin=1;
- 471   1        InitI2C();  // Initialize i2c pins  
- 472   1        flag=0;
- 473   1        //set initial time
- 474   1        //Set_DS1307_RTC_Time(PM_Time, 12, 59, 58); // Set time 12:59:58 PM
- 475   1        //Set_DS1307_RTC_Date(24, 8, 18, 0);  // Set Set 24-08-2017
- 476   1        while(1){
- 477   2          flag=0;
- 478   2          CalculateDateTo7seg(Get_DS1307_RTC_Date());
- 479   2          CalculateTimeTo7seg(Get_DS1307_RTC_Time());
- 480   2          if(SS%5==4)
- 481   2            tempflag=1;
- 482   2          if(SS%5==0 && tempflag==1){
- 483   3            delay(10000);
-C51 COMPILER V9.56.0.0   TEST                                                              04/05/2018 20:10:14 PAGE 9   
+ 472          */
+ 473          void main(){  
+ 474   1        modepin=1;
+ 475   1        changeunits=1;
+ 476   1        changetens=1;
+ 477   1        setpin=1;
+ 478   1        InitI2C();  // Initialize i2c pins  
+ 479   1        flag=0;
+ 480   1        //set initial time
+ 481   1        //Set_DS1307_RTC_Time(PM_Time, 12, 59, 58); // Set time 12:59:58 PM
+ 482   1        //Set_DS1307_RTC_Date(24, 8, 18, 0);  // Set Set 24-08-2017
+ 483   1        while(1){
+C51 COMPILER V9.56.0.0   TEST                                                              04/18/2018 00:03:18 PAGE 9   
 
- 484   3            CalculateTempTo7seg(getTemp());
- 485   3            tempflag=0;
- 486   3            delay(10000);
- 487   3          }
- 488   2          display();
- 489   2          if(AlarmTime==currentTime)
- 490   2            buzzer=1;
- 491   2          else buzzer=0;
- 492   2          if(modepin==0){
- 493   3            delay(debounceTime);
- 494   3            if(modepin==0){
- 495   4              while(modepin!=1);
- 496   4              setAlarm();
- 497   4            }
- 498   3          }
- 499   2          delay(65000);
- 500   2        }
- 501   1      }
+ 484   2          flag=0;
+ 485   2          CalculateDateTo7seg(Get_DS1307_RTC_Date());
+ 486   2          CalculateTimeTo7seg(Get_DS1307_RTC_Time());
+ 487   2          if(SS%5==4)
+ 488   2            tempflag=1;
+ 489   2          if(SS%5==0 && tempflag==1){
+ 490   3            delay(10000);
+ 491   3            CalculateTempTo7seg(getTemp());
+ 492   3            tempflag=0;
+ 493   3            delay(10000);
+ 494   3          }
+ 495   2          display();
+ 496   2          if(AlarmTime==currentTime)
+ 497   2            buzzer=1;
+ 498   2          else buzzer=0;
+ 499   2          if(modepin==0){
+ 500   3            delay(debounceTime);
+ 501   3            if(modepin==0){
+ 502   4              while(modepin!=1);
+ 503   4              setAlarm();
+ 504   4            }
+ 505   3          }
+ 506   2          delay(65000);
+ 507   2        }
+ 508   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =   1896    ----
+   CODE SIZE        =   2042    ----
    CONSTANT SIZE    =   ----    ----
    XDATA SIZE       =   ----    ----
    PDATA SIZE       =   ----    ----
-   DATA SIZE        =     54       9
+   DATA SIZE        =     96      11
    IDATA SIZE       =   ----    ----
    BIT SIZE         =   ----    ----
 END OF MODULE INFORMATION.
